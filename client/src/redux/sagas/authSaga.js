@@ -1,6 +1,9 @@
 import axios from "axios";
 import { put, call, all, fork, takeEvery } from "redux-saga/effects";
 import {
+  CLEAR_ERROR_FAILURE,
+  CLEAR_ERROR_REQUEST,
+  CLEAR_ERROR_SUCCESS,
   LOGIN_FAILURE,
   LOGIN_REQUEST,
   LOGIN_SUCCESS,
@@ -10,6 +13,9 @@ import {
   REGISTER_FAILURE,
   REGISTER_REQUEST,
   REGISTER_SUCCESS,
+  USER_LOADING_FAILURE,
+  USER_LOADING_REQUEST,
+  USER_LOADING_SUCCESS,
 } from "redux/types";
 
 // LOGIN
@@ -66,14 +72,8 @@ function* watchLogout() {
 
 // REGISTER
 
-const registerAPI = (registerData) => {
-  console.log(registerData, ">>> loginData");
-  const config = {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-  return axios.post("api/user", registerData, config);
+const registerAPI = (data) => {
+  return axios.post("api/user", data);
 };
 
 function* register(action) {
@@ -96,6 +96,66 @@ function* watchRegister() {
   yield takeEvery(REGISTER_REQUEST, register); // REGISTER_REQUEST가 바뀌는것을 감시하면서 바뀌면 Register 실행
 }
 
+// CLEAR_ERROR
+
+function* clearError() {
+  try {
+    yield put({
+      type: CLEAR_ERROR_SUCCESS,
+    });
+  } catch (e) {
+    yield put({
+      type: CLEAR_ERROR_FAILURE,
+    });
+  }
+}
+
+function* watchClearError() {
+  yield takeEvery(CLEAR_ERROR_REQUEST, clearError);
+}
+
+// USER LOADING
+
+const userLoadingAPI = (data) => {
+  const token = data;
+  const config = {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+  if (token) {
+    config.headers["x-auth-token"] = token;
+  }
+  return axios.get("api/auth/user", config);
+};
+
+function* userLoading(action) {
+  try {
+    console.log(action, "userLoading");
+    const result = yield call(userLoadingAPI, action.payload);
+    console.log(result);
+    yield put({
+      type: USER_LOADING_SUCCESS,
+      payload: result.data,
+    });
+  } catch (e) {
+    yield put({
+      type: USER_LOADING_FAILURE,
+      payload: e.response,
+    });
+  }
+}
+
+function* watchUserLoading() {
+  yield takeEvery(USER_LOADING_REQUEST, userLoading);
+}
+
 export default function* authSaga() {
-  yield all([fork(watchLogin), fork(watchLogout), fork(watchRegister)]);
+  yield all([
+    fork(watchLogin),
+    fork(watchLogout),
+    fork(watchRegister),
+    fork(watchClearError),
+    fork(watchUserLoading),
+  ]);
 }

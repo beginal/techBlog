@@ -7,6 +7,9 @@ import {
   NavbarToggler,
   Collapse,
   NavLink,
+  Form,
+  NavItem,
+  Button,
 } from "reactstrap";
 import styled from "styled-components";
 import { LoginModal } from "components";
@@ -36,6 +39,63 @@ const NavBar = () => {
     setIsOpen(!isOpen);
   };
 
+  const addPostClick = () => {};
+
+  const authLink = (
+    <>
+      <NavItem>
+        {userRole === "Admin" ? (
+          <Form className="col mt-2">
+            <Link
+              to="post"
+              className="btn btn-success block text-white px-3"
+              onClick={addPostClick}
+            >
+              Add Post
+            </Link>
+          </Form>
+        ) : (
+          ""
+        )}
+      </NavItem>
+      <NavItem className="d-flex justify-content-center">
+        <Form className="col mt-2">
+          {user?.name ? (
+            <Link to="#">
+              <Button outline color="lignt" className="px-3" block>
+                <strong>{user ? `welcome ${user.name}` : ""}</strong>
+              </Button>
+            </Link>
+          ) : (
+            <Button outline color="lignt" className="px-3" block>
+              <strong>Find Not User</strong>
+            </Button>
+          )}
+        </Form>
+      </NavItem>
+      <NavItem>
+        <Form className="col">
+          <Link onClick={onLogout} to="#">
+            <Button outline color="light" className="mt-2" block>
+              LogOut
+            </Button>
+          </Link>
+        </Form>
+      </NavItem>
+    </>
+  );
+
+  const gusetLink = (
+    <>
+      <NavItem>
+        <RegisterModal />
+      </NavItem>
+      <NavItem>
+        <LoginModal />
+      </NavItem>
+    </>
+  );
+
   return (
     <StyleDiv>
       <Navbar color="dark" dark expand="lg" className="sticky-top">
@@ -46,16 +106,7 @@ const NavBar = () => {
           </Link>
           <Collapse isOpen={isOpen} navbar>
             <Nav className="ml-auto d-flex justfy-content-around" navbar>
-              {isAuthenticated ? (
-                <NavLink onClick={onLogout} href="#">
-                  Logout
-                </NavLink>
-              ) : (
-                <>
-                  <LoginModal />
-                  <RegisterModal />
-                </>
-              )}
+              {isAuthenticated ? authLink : gusetLink}
             </Nav>
           </Collapse>
         </Container>
